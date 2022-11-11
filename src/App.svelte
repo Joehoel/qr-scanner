@@ -30,10 +30,20 @@
 
   async function populateVideo(cameraId?: string) {
     const constraints: MediaStreamConstraints = {};
+
     constraints.video = cameraId
       ? {
           deviceId: { exact: cameraId },
-          height: { min: 576, ideal: 720, max: 1080 },
+          width: {
+            min: 1280,
+            ideal: 1920,
+            max: 2560,
+          },
+          height: {
+            min: 720,
+            ideal: 1080,
+            max: 1440,
+          },
         }
       : true;
 
@@ -46,6 +56,16 @@
     setInterval(() => detectBarcodes(video), 100);
     // setInterval(paintToCanvas, 20);
   }
+
+  async function getDevices() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return devices;
+  }
+
+  // function handleCameraChange() {
+  //   if (!cameraSwitcherEl) return;
+  //   populateVideo(cameraSwitcherEl.value);
+  // }
 
   async function detectBarcodes(video: HTMLVideoElement) {
     const results: DetectedBarcode[] = await barcodeDetector.detect(video);
@@ -60,6 +80,8 @@
       };
 
       console.log(result.rawValue);
+
+      detectedValue = result.rawValue;
 
       const scaledCenterPoint = scaleCoordsToVideo(centerPoint.x, centerPoint.y);
 
@@ -84,9 +106,42 @@
       y: (y * videoRect.height) / video.videoHeight,
     };
   }
+
   onMount(() => {
     populateVideo();
   });
+
+  let selectedCamera: string;
+
+  let detectedValue: string = "Hello World";
 </script>
 
-<video playsinline muted class="webcam" bind:this={video} />
+<main class="overflow-hidden">
+  <div class="shadow-lg z-10 flex items-center flex-col px-4 bg-white absolute w-full py-4">
+    <div class="mt-4">
+      <select
+        class="fixed bottom-5 inset-x-5"
+        id="menu-button"
+        aria-expanded="true"
+        aria-haspopup="true"
+        name="cameras"
+        bind:value={selectedCamera}
+        on:change={() => populateVideo(selectedCamera)}
+      >
+        {#await getDevices()}
+          <option value={undefined}>Loading...</option>
+        {:then devices}
+          {#each devices as device}
+            {#if device.kind === "videoinput"}
+              <option value={device.deviceId}>{device.label}</option>
+            {/if}
+          {/each}
+        {/await}
+      </select>
+    </div>
+    <div class="flex items-center mt-6">
+      <p class="font-semibold text-2xl">{detectedValue}</p>
+    </div>
+  </div>
+  <video playsinline muted bind:this={video} class="h-screen w-screen object-cover" />
+</main>

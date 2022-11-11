@@ -1,4 +1,4 @@
-import "@picocss/pico";
+import "./app.postcss";
 import App from "./App.svelte";
 
 import { BarcodeDetectorPolyfill } from "@undecaf/barcode-detector-polyfill";
