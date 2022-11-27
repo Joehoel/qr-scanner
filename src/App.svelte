@@ -68,12 +68,20 @@
   });
 
   let detectedValue: string = "";
+
+  $: lines = detectedValue
+    .split(".")
+    .filter(Boolean)
+    .map(line => (line += "."));
+  console.log({ detectedValue, lines });
 </script>
 
 <main class="overflow-hidden">
   <div class="shadow-lg z-10 flex items-center flex-col px-4 bg-white absolute w-full py-4">
-    <div class="flex items-center mt-6">
-      <p class="font-semibold text-2xl">{detectedValue}</p>
+    <div class="items-center mt-6">
+      {#each lines as line}
+        <p class="text-xl font-semibold">{line}</p>
+      {/each}
     </div>
   </div>
   <audio bind:this={audio} src="/bleep.mp3" />
